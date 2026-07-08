@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, Send, Trash2 } from 'lucide-react'; // Añadimos Trash2
+import { Heart, MessageCircle, Share2, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface PostCardProps {
@@ -12,7 +12,8 @@ interface PostCardProps {
   likes: number;
   comments: number;
   isDarkMode: boolean;
-  onDelete?: () => void; // NUEVO: Permiso para ser eliminada
+  onDelete?: () => void;
+  onUserClick?: () => void; // NUEVO: Permiso para abrir el perfil
 }
 
 export function PostCard({
@@ -26,7 +27,8 @@ export function PostCard({
   likes,
   comments,
   isDarkMode,
-  onDelete, // NUEVO
+  onDelete,
+  onUserClick, // NUEVO
 }: PostCardProps) {
   
   const [isLiked, setIsLiked] = useState(false);
@@ -62,7 +64,13 @@ export function PostCard({
     }`}>
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        
+        {/* --- CORRECCIÓN: Contenedor con cursor-pointer y onClick --- */}
+        <div 
+          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={onUserClick}
+          title="Ver perfil"
+        >
           <img
             src={profileImage}
             alt={username}
@@ -85,7 +93,7 @@ export function PostCard({
           </div>
         </div>
 
-        {/* --- NUEVO: BOTÓN DE ELIMINAR --- */}
+        {/* Botón de eliminar */}
         {onDelete && (
           <button 
             onClick={onDelete}
@@ -102,7 +110,9 @@ export function PostCard({
       {/* Post Text */}
       {postText && (
         <div className="px-4 pb-3">
-          <p className={isDarkMode ? 'text-[#E5E5E5]' : 'text-[#333333]'}>{postText}</p>
+          <p className={`break-words break-all whitespace-pre-wrap ${isDarkMode ? 'text-[#E5E5E5]' : 'text-[#333333]'}`}>
+            {postText}
+          </p>
         </div>
       )}
 
@@ -158,7 +168,9 @@ export function PostCard({
                       <span className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-[#333333]'}`}>Tú</span>
                       <span className={`text-xs ${isDarkMode ? 'text-[#A0A0A0]' : 'text-[#666666]'}`}>{comment.time}</span>
                     </div>
-                    <p className={`text-sm ${isDarkMode ? 'text-[#E5E5E5]' : 'text-[#333333]'}`}>{comment.text}</p>
+                    <p className={`text-sm break-words break-all whitespace-pre-wrap ${isDarkMode ? 'text-[#E5E5E5]' : 'text-[#333333]'}`}>
+                      {comment.text}
+                    </p>
                   </div>
                 </div>
               ))}

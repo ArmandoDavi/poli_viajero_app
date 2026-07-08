@@ -1,115 +1,259 @@
 import { MapPin, GraduationCap, BookOpen, Calendar, ImageIcon, ShoppingBag, FileText, Edit2, Save, X, Camera, Send } from 'lucide-react';
 import { PostCard } from './PostCard';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface ProfileViewProps {
   isDarkMode: boolean;
 }
 
-const initialPosts = [
-  {
-    id: 1,
-    profileImage: 'https://images.unsplash.com/photo-1649589244330-09ca58e4fa64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHBvcnRyYWl0JTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc3NjE4MDE2OHww&ixlib=rb-4.1.0&q=80&w=1080',
-    username: 'Sarah Johnson', country: 'Corea del Sur', countryFlag: '🇰🇷', timePosted: 'hace 2 días',
-    postText: '¡Primera semana en Seúl completada! La experiencia ha sido increíble. El campus es enorme y la comida es deliciosa 🍜✨',
-    postImage: 'https://images.unsplash.com/photo-1723174391648-9e73f8865a12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZW91bCUyMGNpdHklMjBza3lsaW5lfGVufDF8fHx8MTc3ODU1Mzc4MXww&ixlib=rb-4.1.0&q=80&w=1080',
-    likes: 1842, comments: 156,
-  },
-  {
-    id: 2,
-    profileImage: 'https://images.unsplash.com/photo-1649589244330-09ca58e4fa64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHBvcnRyYWl0JTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc3NjE4MDE2OHww&ixlib=rb-4.1.0&q=80&w=1080',
-    username: 'Sarah Johnson', country: 'Corea del Sur', countryFlag: '🇰🇷', timePosted: 'hace 5 días',
-    postText: 'Explorando los mercados tradicionales. ¡Hay tantas cosas por descubrir! Recomiendo el mercado de Namdaemun 🛍️',
-    postImage: 'https://images.unsplash.com/photo-1617381519460-d87050ddeb92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaXR5JTIwYXJjaGl0ZWN0dXJlfGVufDF8fHx8MTc3NjIxNjcxMnww&ixlib=rb-4.1.0&q=80&w=1080',
-    likes: 2103, comments: 189,
-  },
-];
+// --- LIMPIEZA: Arreglo vacío para empezar sin publicaciones de prueba ---
+const initialPosts: any[] = [];
 
 export function ProfileView({ isDarkMode }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState('publicaciones');
   
-  // --- MEMORIA DE LAS PUBLICACIONES ---
   const [posts, setPosts] = useState(initialPosts);
   const [newPostText, setNewPostText] = useState('');
-  // NUEVO: Memoria para la foto de la publicación
   const [newPostImage, setNewPostImage] = useState<string | null>(null);
 
-  // --- ESTADO DE INTERFAZ: MODO EDICIÓN ---
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- REFERENCIAS PARA LOS INPUTS DE ARCHIVO (OCULTOS) ---
   const profileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
-  // NUEVO: Referencia para la foto de la publicación
   const postImageInputRef = useRef<HTMLInputElement>(null);
 
-  // --- MEMORIA DE LOS DATOS DEL PERFIL ---
+  // --- PERFIL NEUTRAL INICIAL ---
   const [profileData, setProfileData] = useState({
-    name: 'Sarah Johnson',
-    subtitle: 'Estudiante de ESCOM - IPN | Movilidad en Seúl, Corea del Sur 🇰🇷',
-    bio: 'Apasionada por la ingeniería y los viajes. Actualmente en intercambio académico. ¡Contáctame si necesitas tips sobre Seúl!',
-    escuela: 'ESCOM-IPN',
-    carrera: 'ISC',
-    semestre: '6to',
-    destino: 'Corea del Sur 🇰🇷',
-    profileImage: 'https://images.unsplash.com/photo-1649589244330-09ca58e4fa64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHBvcnRyYWl0JTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc3NjE4MDE2OHww&ixlib=rb-4.1.0&q=80&w=1080',
-    coverImage: 'https://images.unsplash.com/photo-1723174391648-9e73f8865a12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZW91bCUyMGNpdHklMjBza3lsaW5lfGVufDF8fHx8MTc3ODU1Mzc4MXww&ixlib=rb-4.1.0&q=80&w=1080'
+    name: 'Usuario Nuevo',
+    subtitle: 'Estudiante',
+    bio: 'Aún no hay una biografía disponible. ¡Edita tu perfil para contarnos sobre ti!',
+    escuela: '---',
+    carrera: '---',
+    semestre: '---',
+    destino: '---',
+    profileImage: 'https://placehold.co/200x200/18020E/A0A0A0?text=Añadir+Foto',
+    coverImage: 'https://placehold.co/800x200/18020E/A0A0A0?text=Añadir+Portada'
   });
+
+  // --- LLAMADA REAL A LA BASE DE DATOS ---
+  // --- LLAMADA REAL A LA BASE DE DATOS ---
+  useEffect(() => {
+    const boletaUsuario = localStorage.getItem("boleta");
+
+    if (boletaUsuario) {
+      // 1. Cargar la información del perfil
+      fetch(`http://localhost:8000/api/usuarios/${boletaUsuario}`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.detail) {
+            setProfileData(prev => ({
+              ...prev,
+              name: data.nombre,
+              destino: data.destino,
+              escuela: data.escuela_origen || '---',
+              carrera: data.carrera || '---',
+              semestre: data.semestre || '---',
+              bio: data.biografia || 'Aún no hay una biografía disponible. ¡Edita tu perfil para contarnos sobre ti!',
+              profileImage: data.foto_perfil || prev.profileImage,
+              coverImage: data.foto_portada || prev.coverImage,
+              subtitle: data.descripcion_corta || `Estudiante de ${data.escuela_origen || 'ESCOM - IPN'} | ${data.movilidad} en ${data.destino}`,
+            }));
+          }
+        })
+        .catch(error => console.error("Error conectando con la BD:", error));
+
+      // 2. NUEVO: Cargar el historial de publicaciones
+      fetch(`http://localhost:8000/api/posts/${boletaUsuario}`)
+        .then(response => response.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            // Transformamos los datos de Python para que React los entienda
+            const postsGuardados = data.map(post => ({
+              id: post.id,
+              username: post.username,
+              profileImage: post.profile_image,
+              timePosted: post.time_posted,
+              postText: post.post_text,
+              postImage: post.post_image,
+              country: 'Destino', 
+              countryFlag: '🌍',
+              likes: post.likes,
+              comments: post.comments
+            }));
+            setPosts(postsGuardados);
+          }
+        })
+        .catch(error => console.error("Error cargando publicaciones:", error));
+    }
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageChange = (field: 'profileImage' | 'coverImage', event: React.ChangeEvent<HTMLInputElement>) => {
+  // --- NUEVA FUNCIÓN QUE SÍ COMUNICA LAS FOTOS A PYTHON ---
+  // --- SUBIR IMAGEN FÍSICA AL BACKEND ---
+  const handleImageChange = async (field: 'profileImage' | 'coverImage', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileData(prev => ({ ...prev, [field]: imageUrl }));
+    if (!file) return;
+
+    // 1. Buscamos la boleta del usuario actual
+    const boletaUsuario = localStorage.getItem("boleta");
+    if (!boletaUsuario) {
+      console.error("No se encontró la boleta del usuario. Inicia sesión de nuevo.");
+      return;
+    }
+
+    // 2. Preparamos el paquete de la imagen para enviarlo
+    const tipoRuta = field === 'profileImage' ? 'perfil' : 'portada';
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      console.log(`Intentando subir imagen de ${tipoRuta}...`);
+      
+      // 3. Enviamos la petición a nuestro backend FastAPI
+      const res = await fetch(`http://localhost:8000/api/perfil/upload-image/${tipoRuta}/${boletaUsuario}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.status === "success") {
+        console.log("¡Éxito! URL guardada:", data.url);
+        
+        // 👇 LA MAGIA AQUÍ: Agregamos "?t=" seguido de la hora exacta en milisegundos 👇
+        // Esto rompe la caché del navegador y fuerza el renderizado instantáneo
+        const urlFinalConCacheBuster = `${data.url}?t=${Date.now()}`;
+        
+        setProfileData(prev => ({ ...prev, [field]: urlFinalConCacheBuster }));
+      } else {
+        console.error("El servidor rechazó la imagen:", data.detail);
+      }
+    } catch (error) {
+      console.error("Error al conectar con Python:", error);
     }
   };
-  // --- NUEVA LÓGICA: ELIMINAR PUBLICACIÓN ---
+
   const handleDeletePost = (postIdToDelete: number) => {
-    // Filtramos la lista para quedarnos con todos los posts, EXCEPTO el que queremos borrar
     setPosts(posts.filter(post => post.id !== postIdToDelete));
   };
-  // NUEVO: Función para adjuntar foto a la publicación
-  const handlePostImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handlePostImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setNewPostImage(imageUrl);
+    if (!file) return;
+
+    // Preparamos la imagen en un FormData
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      console.log("Subiendo archivo físico de la publicación al servidor...");
+      
+      // Enviamos la foto a la nueva ruta de FastAPI
+      const res = await fetch("http://localhost:8000/api/posts/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.status === "success") {
+        console.log("¡Imagen de post subida con éxito! URL real:", data.url);
+        // Guardamos la URL real del servidor en el estado de la vista previa
+        setNewPostImage(data.url);
+      } else {
+        console.error("El servidor rechazó la imagen del post");
+      }
+    } catch (error) {
+      console.error("Error conectando con la ruta de imágenes de posts:", error);
     }
-    // Reseteamos el input para que permita subir la misma foto si la borraste
+
     if (event.target) event.target.value = '';
   };
 
-  const handleSave = () => {
-    console.log("Datos listos para enviar al backend:", profileData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    const boletaUsuario = localStorage.getItem("boleta");
+    if (!boletaUsuario) return;
+
+    try {
+      // Enviamos el paquete con todos los textos al backend
+      const res = await fetch("http://localhost:8000/api/perfil/actualizar", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boleta: boletaUsuario,
+          nombre: profileData.name,
+          escuela_origen: profileData.escuela,
+          carrera: profileData.carrera,
+          semestre: profileData.semestre,
+          destino: profileData.destino,
+          descripcion_corta: profileData.subtitle,
+          biografia: profileData.bio,
+        }),
+      });
+
+  const data = await res.json();
+
+    if (res.ok && data.status === "success") {
+        console.log("¡Textos guardados en la base de datos!");
+        setIsEditing(false); // Cerramos el modo edición al terminar
+      } else {
+        console.error("Error del servidor:", data);
+      }
+    } catch (error) {
+      console.error("Error al guardar los textos:", error);
+    }
   };
 
-  // --- LÓGICA PARA CREAR NUEVA PUBLICACIÓN ---
-  const handleCreatePost = (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validamos que haya texto o imagen (o ambas)
     if (newPostText.trim() === '' && !newPostImage) return;
 
-    const newPost = {
-      id: Date.now(),
-      profileImage: profileData.profileImage,
-      username: profileData.name,
-      country: profileData.destino.replace(/[^\w\s]/gi, '').trim(),
-      countryFlag: profileData.destino.slice(-2),
-      timePosted: 'Hace un momento',
-      postText: newPostText,
-      postImage: newPostImage || '', // Toma la imagen si existe
-      likes: 0,
-      comments: 0,
-    };
+    const boletaUsuario = localStorage.getItem("boleta");
+    if (!boletaUsuario) return;
 
-    setPosts([newPost, ...posts]);
-    setNewPostText('');
-    setNewPostImage(null); // Limpiamos la imagen después de publicar
+    try {
+      // 1. Enviamos los datos del post a Python
+      const res = await fetch("http://localhost:8000/api/posts/crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boleta_usuario: boletaUsuario,
+          username: profileData.name,
+          profile_image: profileData.profileImage,
+          post_text: newPostText,
+          post_image: newPostImage || "" // Por ahora, manejaremos solo texto permanentemente
+        })
+      });
+
+      if (res.ok) {
+        // 2. Si se guardó con éxito, volvemos a descargar la lista actualizada
+        const postsRes = await fetch(`http://localhost:8000/api/posts/${boletaUsuario}`);
+        const postsData = await postsRes.json();
+        
+        if (Array.isArray(postsData)) {
+          const postsGuardados = postsData.map((post: any) => ({
+            id: post.id,
+            username: post.username,
+            profileImage: post.profile_image,
+            timePosted: post.time_posted,
+            postText: post.post_text,
+            postImage: post.post_image,
+            country: profileData.destino !== '---' ? profileData.destino.replace(/[^\w\s]/gi, '').trim() : 'Destino',
+            countryFlag: profileData.destino !== '---' ? (profileData.destino.slice(-2) || '🌍') : '🌍',
+            likes: post.likes,
+            comments: post.comments
+          }));
+          setPosts(postsGuardados);
+        }
+
+        // 3. Limpiamos la caja de texto
+        setNewPostText('');
+        setNewPostImage(null);
+      }
+    } catch (error) {
+      console.error("Error al crear la publicación:", error);
+    }
   };
 
   const mobilityInfo = [
@@ -121,15 +265,11 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-6 font-sans">
-      
-      {/* INPUTS DE ARCHIVO OCULTOS */}
       <input type="file" ref={profileInputRef} accept="image/*" onChange={(e) => handleImageChange('profileImage', e)} className="hidden" />
       <input type="file" ref={coverInputRef} accept="image/*" onChange={(e) => handleImageChange('coverImage', e)} className="hidden" />
-      <input type="file" ref={postImageInputRef} accept="image/*" onChange={handlePostImageChange} className="hidden" /> {/* Input para posts */}
+      <input type="file" ref={postImageInputRef} accept="image/*" onChange={handlePostImageChange} className="hidden" />
 
-      {/* Main Content Area */}
       <div className="flex-1">
-        {/* Profile Header Card */}
         <div className={`rounded-2xl overflow-hidden mb-6 border relative ${
           isDarkMode ? 'bg-[#18020E] border-[#2D0418]' : 'bg-white border-[#F0D0E0]'
         }`}>
@@ -159,7 +299,7 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
               </button>
             )}
             <div className="absolute -bottom-16 left-8 w-32 h-32 group">
-              <img src={profileData.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover border-4 border-[#750946] relative z-10" />
+              <img src={profileData.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover border-4 border-[#750946] relative z-10 bg-[#18020E]" />
               {isEditing && (
                 <button onClick={() => profileInputRef.current?.click()} className="absolute inset-0 rounded-full bg-black/70 flex flex-col items-center justify-center text-white z-20 transition-opacity">
                   <Camera className="w-8 h-8 mb-1" />
@@ -188,8 +328,8 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
             <div className="flex gap-8">
               {[
                 { value: posts.length.toString(), label: 'Publicaciones' },
-                { value: '152', label: 'Conexiones' },
-                { value: '5', label: 'Artículos en Mercado' },
+                { value: '0', label: 'Conexiones' },
+                { value: '0', label: 'Artículos en Mercado' },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-[#750946]'}`}>{stat.value}</div>
@@ -200,7 +340,6 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
           </div>
         </div>
 
-        {/* Tabs Navigation */}
         <div className={`rounded-2xl mb-6 border ${isDarkMode ? 'bg-[#18020E] border-[#2D0418]' : 'bg-white border-[#F0D0E0]'}`}>
           <div className={`flex flex-wrap border-b ${isDarkMode ? 'border-[#2D0418]' : 'border-[#F0D0E0]'}`}>
             {[
@@ -224,38 +363,25 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
           </div>
         </div>
 
-        {/* Tab Content */}
         {activeTab === 'publicaciones' && (
           <div className="space-y-6">
-            
-            {/* --- CAJA PARA CREAR NUEVA PUBLICACIÓN --- */}
             <div className={`rounded-2xl p-4 border shadow-sm ${isDarkMode ? 'bg-[#18020E] border-[#2D0418]' : 'bg-white border-[#F0D0E0]'}`}>
               <form onSubmit={handleCreatePost}>
                 <div className="flex gap-4">
-                  <img src={profileData.profileImage} alt="User" className="w-12 h-12 rounded-full object-cover border border-[#ED128E]/30" />
+                  <img src={profileData.profileImage} alt="User" className="w-12 h-12 rounded-full object-cover border border-[#ED128E]/30 bg-[#18020E]" />
                   <div className="flex-1">
                     <textarea
                       value={newPostText}
                       onChange={(e) => setNewPostText(e.target.value)}
-                      placeholder={`¿Qué nos quieres contar de ${profileData.destino.replace(/[^\w\s]/gi, '').trim()}, ${profileData.name.split(' ')[0]}?`}
+                      placeholder={`¿Qué nos quieres contar, ${profileData.name.split(' ')[0]}?`}
                       className={`w-full bg-transparent border-none resize-none focus:ring-0 p-2 text-base ${isDarkMode ? 'text-white placeholder-[#A0A0A0]' : 'text-[#333333] placeholder-[#666666]'}`}
                       rows={2}
                     />
                     
-                    {/* VISTA PREVIA DE LA IMAGEN A PUBLICAR */}
                     {newPostImage && (
                       <div className="relative mt-2 inline-block">
-                        <img 
-                          src={newPostImage} 
-                          alt="Preview" 
-                          className="max-h-48 rounded-xl object-cover border border-gray-600/30" 
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setNewPostImage(null)} 
-                          className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 text-white rounded-full transition-colors"
-                          title="Quitar foto"
-                        >
+                        <img src={newPostImage} alt="Preview" className="max-h-48 rounded-xl object-cover border border-gray-600/30" />
+                        <button type="button" onClick={() => setNewPostImage(null)} className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 text-white rounded-full transition-colors" title="Quitar foto">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -263,40 +389,34 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
                   </div>
                 </div>
                 <div className={`flex justify-between items-center mt-4 pt-3 border-t ${isDarkMode ? 'border-[#2D0418]' : 'border-[#F0D0E0]'}`}>
-                  {/* BOTÓN CONECTADO AL INPUT OCULTO */}
-                  <button 
-                    type="button" 
-                    onClick={() => postImageInputRef.current?.click()}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors text-sm font-medium ${isDarkMode ? 'text-[#A0A0A0] hover:bg-[#2D0418] hover:text-[#ED128E]' : 'text-[#666666] hover:bg-[#FDE7F4] hover:text-[#750946]'}`}
-                  >
+                  <button type="button" onClick={() => postImageInputRef.current?.click()} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors text-sm font-medium ${isDarkMode ? 'text-[#A0A0A0] hover:bg-[#2D0418] hover:text-[#ED128E]' : 'text-[#666666] hover:bg-[#FDE7F4] hover:text-[#750946]'}`}>
                     <ImageIcon className="w-5 h-5" />
                     <span className="hidden sm:inline">Añadir foto</span>
                   </button>
-                  <button 
-                    type="submit" 
-                    disabled={newPostText.trim() === '' && !newPostImage}
-                    className="flex items-center gap-2 bg-[#ED128E] text-white px-6 py-2 rounded-xl font-medium hover:bg-[#c90d76] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                  >
+                  <button type="submit" disabled={newPostText.trim() === '' && !newPostImage} className="flex items-center gap-2 bg-[#ED128E] text-white px-6 py-2 rounded-xl font-medium hover:bg-[#c90d76] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
                     <Send className="w-4 h-4" />
                     Publicar
                   </button>
                 </div>
               </form>
             </div>
-            {/* ------------------------------------------ */}
 
-            {posts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                {...post} 
-                // MAGIA: Forzamos a que todas las publicaciones usen tu nombre y foto actual
-                username={profileData.name} 
-                profileImage={profileData.profileImage}
-                isDarkMode={isDarkMode} 
-                // Le pasamos a la tarjeta el poder de eliminarse a sí misma
-                onDelete={() => handleDeletePost(post.id)}
-              />
-            ))}
+            {posts.length === 0 ? (
+              <div className={`text-center py-10 ${isDarkMode ? 'text-[#A0A0A0]' : 'text-[#666666]'}`}>
+                No hay publicaciones aún. ¡Sé el primero en compartir algo!
+              </div>
+            ) : (
+              posts.map((post) => (
+                <PostCard 
+                  key={post.id} 
+                  {...post} 
+                  username={profileData.name} 
+                  profileImage={profileData.profileImage}
+                  isDarkMode={isDarkMode} 
+                  onDelete={() => handleDeletePost(post.id)}
+                />
+              ))
+            )}
           </div>
         )}
 
@@ -317,7 +437,6 @@ export function ProfileView({ isDarkMode }: ProfileViewProps) {
         )}
       </div>
 
-      {/* Right Sidebar - Mobility Info */}
       <aside className="w-full lg:w-80 lg:sticky top-20 h-fit">
         <div className={`rounded-2xl p-6 border ${isDarkMode ? 'bg-[#18020E] border-[#2D0418]' : 'bg-white border-[#F0D0E0]'}`}>
           <div className="flex justify-between items-center mb-4">
